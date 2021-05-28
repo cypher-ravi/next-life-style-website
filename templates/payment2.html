@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<!--Main layout-->
+<main>
+
+    <div class="container wow fadeIn">
+
+        <!-- Heading -->
+        <h2 class="my-5 h2 text-center">Payment</h2>
+        <form action="." method="POST" id='stripe-form'>
+            {% csrf_token %}
+            <div class="row">
+                <!-- <div class="col-md-6 mb-2">
+                    <div class="md-form md-outline my-2">
+                        <input type="text" id="cc-name" class="form-control" required>
+                        <label for="cc-name">Name on card</label>
+                        <small class="text-muted">Full name as displayed on card</small>
+                    </div>
+                    <div class="invalid-feedback">
+                        Name on card is required
+                    </div>
+                </div> -->
+                <div class="col-md-6 mb-2">
+                    <div class="md-form md-outline my-2">
+                        <input type="text" id="cc-number" class="form-control" required>
+                        <label for="cc-number">Credit card number</label>
+                    </div>
+                    <div class="invalid-feedback">
+                        Credit card number is required
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <div class="md-form md-outline my-2">
+                        <input type="text" id="cc-expiration" class="form-control" required>
+                        <label for="cc-expiration">Expiration</label>
+                    </div>
+                    <div class="invalid-feedback">
+                        Expiration date required
+                    </div>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <div class="md-form md-outline my-2">
+                        <input type="text" id="cc-cvv" class="form-control" required>
+                        <label for="cc-cvv">CVV</label>
+                    </div>
+                    <div class="invalid-feedback">
+                        Security code required
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-4">
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Submit</button>
+        </form>
+
+        <!--Grid column-->
+        <div class="col-md-12 mt-4 mb-4">
+
+            {% include 'order_snippet.html' %}
+
+        </div>
+        <!--Grid column-->
+
+    </div>
+
+</main>
+<!--Main layout-->
+
+{% endblock %}
+
+{% block extra_js_scripts %}
+<script src="https://js.stripe.com/v3/"></script>
+<script nonce="">  // Create a Stripe client.
+    var stripe = Stripe('{{STRIPE_PUBLIC_KEY}}');
+    // Create an instance of Elements.
+    var elements = stripe.elements();
+    // Custom styling can be passed to options when creating an Element.
+    // (Note that this demo uses a wider set of styles than the guide below.)
+    var style = {
+        base: {
+            color: '#32325d',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+                color: '#aab7c4'
+            }
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+        }
+    };
+    // Create an instance of the card Element.
+    var card = elements.create('card', { style: style });
+    // Add an instance of the card Element into the `card-element` <div>.
+    card.mount('#card-element');
+    // Handle real-time validation errors from the card Element.
+    card.addEventListener('change', function (event) {
+        var displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+    // Handle form submission.
+    var form = document.getElementById('stripe-form');
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        stripe.createToken(card).then(function (result) {
+            if (result.error) {
+                // Inform the user if there was an error.
+                var errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+            } else {
+                // Send the token to your server.
+                stripeTokenHandler(result.token);
+            }
+        });
+    });
+    // Submit the form with the token ID.
+    function stripeTokenHandler(token) {
+        // Insert the token ID into the form so it gets submitted to the server
+        var form = document.getElementById('stripe-form');
+        var hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'stripeToken');
+        hiddenInput.setAttribute('value', token.id);
+        form.appendChild(hiddenInput);
+        // Submit the form
+        form.submit();
+    }
+
+
+</script>
+
+{% endblock%}

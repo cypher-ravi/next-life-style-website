@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<!--Main layout-->
+<main>
+
+  <div class="container wow fadeIn">
+
+    <!-- Heading -->
+    <h2 class="my-5 h2 text-center">Checkout</h2>
+
+    <!--Grid row-->
+    <div class="row">
+
+      <!--Grid column-->
+      <div class="col-md-8 mb-4">
+
+        <!--Card-->
+        <div class="card">
+          <h4 class="p-4 h4">Billing Address</h4>
+          <div class="hideable_billing_form">
+
+          <!--Card content-->
+          <form method="POST" class="card-body">
+            {% csrf_token %}
+
+            <!--address-->
+            <div class="md-form mb-4">
+              {{ form.billing_street_address }}
+              <label for="address" class="">Address:</label>
+            </div>
+
+            <!--address-2-->
+            <div class="md-form mb-4">
+              {{ form.billing_appt_address }}
+              <label for="address-2" class="">Address 2 (optional):</label>
+            </div>
+
+            <!--Grid row-->
+            <div class="row mt-5">
+              <!--Grid column-->
+              <div class="col-lg-4 col-md-12 mb-5">
+                <label for="country">Country:</label>
+                {{ form.billing_country }}
+                <div class="invalid-feedback">
+                  Please select a valid country.
+                </div>
+              </div>
+              <!--Grid column-->
+
+              <!--Grid column-->
+              <div class="col-lg-4 col-md-12 mb-5">
+                <label for="zip">Zip:</label>
+                {{ form.billing_zip }}
+                <div class="invalid-feedback">
+                  Zip code required.
+                </div>
+              </div>
+              <!--Grid column-->
+            </div>
+            <!--Grid row-->
+
+            <div class="custom-control custom-checkbox">
+              {{ form.same_billing_address }}
+              <label class="custom-control-label" for="same_billing_address">Shipping address is the same as my billing
+                address</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              {{ form.save_info }}
+              <label class="custom-control-label" for="save_info">Save this information for next time</label>
+            </div>
+
+          </div>
+
+            {% if default_billing_address %}
+            <div class="custom-control custom-checkbox">
+              {{ form.use_default_billing_address }}
+              <label class="custom-control-label" for="use_default_billing_address">Use your default billing address: ({{ default_billing_address }})</label>
+            </div>
+            {% endif %}
+
+            <hr>
+            <h4 class="p-4 h4">Payment Options</h4>
+
+            <div class="d-block my-3">
+              {% for value, name in form.fields.payment_option.choices %}
+              <div class="custom-control custom-radio">
+                <input id="{{ name }}" name="payment_option" value="{{ value }}" type="radio"
+                  class="custom-control-input" required>
+                <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
+              </div>
+              {% endfor %}
+            </div>
+        </div>
+        <!--/.Card-->
+
+        <!--Card-->
+        <div class="card">
+          <h4 class="p-4 h4">Shipping Address</h4>
+          <!--Card content-->
+          
+            <!--address-->
+            <div class="md-form mb-4">
+              {{ form.shipping_street_address }}
+              <label for="shipping_address" class="">Address:</label>
+            </div>
+
+            <!--address-2-->
+            <div class="md-form mb-4">
+              {{ form.shipping_appt_address }}
+              <label for="shipping_address-2" class="">Address 2:(optional)</label>
+            </div>
+
+            <!--Grid row-->
+            <div class="row mt-5">
+              <!--Grid column-->
+              <div class="col-lg-4 col-md-12 mb-5">
+                <label for="shipping_country">Country:</label>
+                {{ form.shipping_country }}
+                <div class="invalid-feedback">
+                  Please select a valid country.
+                </div>
+              </div>
+              <!--Grid column-->
+
+              <!--Grid column-->
+              <div class="col-lg-4 col-md-12 mb-5">
+                <label for="zshipping_ip">Zip:</label>
+                {{ form.shipping_zip }}
+                <div class="invalid-feedback">
+                  Zip code required.
+                </div>
+
+                <!--phone-->
+                <div class="row mt-5">
+                  <div class="md-form mb-4">
+                    {{ form.shipping_phone }}
+                    <label for="shipping_phone">Phone:</label>
+                  </div>
+                </div>
+
+                <!--email-->
+                <div class="row mt-5">
+                  <div class="md-form mb-4">
+                    {{ form.shipping_email }}
+                    <label for="shipping_email">Email:</label>
+                  </div>
+                </div>
+
+                <!--delivery_instructions optional-->
+                <div class="row mt-5">
+                  <div class="md-form mb-4">
+                    {{ form.shipping_delivery_instructions }}
+                    <label for="shipping_delivery_instructions">Delivery Instructions:(Optional)</label>
+                  </div>
+                </div>
+
+              </div>
+              <!--Grid column-->
+            </div>
+            <!--Grid row-->
+
+            <hr class="mb-4">
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to checkout</button>
+
+          </form>
+
+        </div>
+        <!--/.Card-->
+      </div>
+      <!--Grid column-->
+
+      <!--Grid column-->
+      <div class="col-md-4 mb-4">
+        {% include 'order_snippet.html' %}
+
+      </div>
+      <!--Grid column-->
+
+    </div>
+    <!--Grid row-->
+  </div>
+
+</main>
+<!--Main layout-->
+
+{% endblock %}
+
+{% block extra_js_scripts %}
+
+<script>
+
+  var hideable_billing_form = $('.hideable_billing_form')
+  var use_default_billing_address = document.querySelector("input[id=use_default_billing_address]")
+  use_default_billing_address.addEventListener('change',function(){
+    if(this.checked){
+      hideable_billing_form.hide();
+    }
+    else{
+      hideable_billing_form.show();
+    }
+  })
+
+</script>
+
+{% endblock%}
