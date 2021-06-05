@@ -154,8 +154,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 LOGIN_REDIRECT_URL = '/'
 
-EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
 
 STRIPE_SECRET_KEY = 'sk_test_51IrN5wSDrMJGqWguI4i53JwoPgg9Cr9ylFLw2TIYBTZU1dyTXKSSpFhjTPo3AgfHUaPaMAdugfapIcGD1vhSHpEx00Hg67LMIi'
 
 STRIPE_PUBLICIABLE_KEY = 'pk_test_51IrN5wSDrMJGqWguIoumL9tCIaYFFx5HhHDUNnvF8g76c4xlMXvCl0d4UlAEZajuG52SJ9BBnXGTpSe3z9E3MeJ700xHAZy0N7'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'krishna.devi0107@gmail.com'
+# EMAIL_HOST_PASSWORD = 'krishna0107'
+EMAIL_HOST_USER = 'rk7305758@gmail.com'
+EMAIL_HOST_PASSWORD = 'ztupoklvzybovgtd'
+EMAIL_PORT = 587

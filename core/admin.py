@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.forms.utils import ErrorList
-from .models import Item, OrderItem, Order, Banner, BillingAddress, Coupon, Refund, ShippingAddress,Payment,UserProfile
+from .models import Item, OrderItem, Order, Banner, BillingAddress, Coupon, Refund, ShippingAddress,Payment,UserProfile,Category
 
 def make_refund_accepted(modeladmin,request,queryset):
     for order in queryset:
@@ -22,11 +22,6 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ['user__username','reference_code']
     actions = [make_refund_accepted]
     
-    
-    
-    
-
-
 
 admin.site.register(Item)
 admin.site.register(OrderItem)
@@ -38,6 +33,7 @@ admin.site.register(Coupon)
 admin.site.register(Payment)
 admin.site.register(Refund)
 admin.site.register(UserProfile)
+admin.site.register(Category)
 
 
 

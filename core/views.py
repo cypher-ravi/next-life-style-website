@@ -6,8 +6,9 @@ from django.utils import timezone
 from django.views.generic import ListView, View
 from django.conf import settings
 from django.http import HttpResponseRedirect
+from .utils import send_mail_to_customer
 
-from .models import Banner, Item, Order, OrderItem, BillingAddress, Payment, Coupon, Refund, ShippingAddress,UserProfile
+from .models import Banner, Item, Order, OrderItem, BillingAddress, Payment, Coupon, Refund, ShippingAddress,UserProfile,Category
 from .forms import CheckoutForm, RefundForm,CouponForm,PaymentForm
 
 import random
@@ -15,10 +16,6 @@ import string
 
 import stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
-# stripe.api_key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
-
-# `source` is obtained with Stripe.js; see https://stripe.com/docs/payments/accept-a-payment-charges#web-create-token
-
 
 # Create your views here.
 
@@ -28,12 +25,18 @@ def create_reference_code():
 
 class HomeView(ListView):
     model = Item
-    paginate_by=3
+    paginate_by=2
     template_name = "home.html"
 
     def get_context_data(self,*args, **kwargs): 
         context = super(HomeView, self).get_context_data(*args,**kwargs) 
         context['banners'] = Banner.objects.all() 
+        context['categories'] = Category.objects.all() 
+        discount_products=[]
+        for item in context['object_list']:
+            if item.discount_price:
+                discount_products.append(item)
+                context['discount_products'] = discount_products
         return context
     
 class OrderSummaryView(View):
@@ -49,91 +52,7 @@ class OrderSummaryView(View):
             print(e)
             messages.error(self.request, message="you do not have active order ")
             return redirect('/')
-        
-# class CheckoutView(View):
-
-#     def get(self,*args,**kwargs):
-#         form = CheckoutForm()
-#         order = Order.objects.get(user=self.request.user, ordered = False)
-#         context={
-#             'form': form,
-#             'order': order,
-#             'DISPLAY_COUPON_FORM': True
-#         }
-        
-#         address = BillingAddress.objects.filter(user=self.request.user,default=True)
-#         if address.exists():
-#             context.update({
-#                 'default_billing_address':address[0]
-#             })
-        
-#         return render(self.request, 'checkout.html',context)
-    
-#     def post(self,*args,**kwargs):
-#         form = CheckoutForm(self.request.POST or None)
-#         print(self.request.POST)
-#         try:
-#             order = Order.objects.get(user=self.request.user, ordered = False)
-#             if form.is_valid():
-#                 use_default_billing_address = form.cleaned_data.get('use_default_billing_address')
-#                 if use_default_billing_address:
-#                     address = BillingAddress.objects.filter(user=self.request.user,default=True)
-#                     if address.exists():
-#                         billing_address = address[0]
-#                     else:
-#                         messages.info(self.request,'no default billing address is available')
-#                         return redirect("core:checkout.html")
-#                 else:      
-#                     street_address = form.cleaned_data.get('billing_street_address')
-#                     appt_address = form.cleaned_data.get('billing_appt_address')
-#                     country = form.cleaned_data.get('billing_country')
-#                     zip = form.cleaned_data.get('billing_zip')
-#                     same_billing_address = form.cleaned_data.get('same_billing_address')
-#                     save_info = form.cleaned_data.get('save_info')
-#                     # payment_option = form.cleaned_data.get('payment_option')
-#                     billing_address = BillingAddress(user=self.request.user, street_address=street_address, appt_address=appt_address, country=country, zip=zip)
-#                     print('before if',save_info)
-#                     if save_info:
-#                         print('after if',save_info)
-#                         billing_address.default=True
-#                         billing_address.save()
-                        
-#                     billing_address.save() 
-#                     order.billing_address=billing_address
-                    
-#                     if same_billing_address:
-#                         shipping_address = ShippingAddress(user=self.request.user, street_address=street_address, appt_address=appt_address, country=country, zip=zip)
-#                         shipping_address.save()
-#                         order.shipping_address=shipping_address
-#                         # order.save()
-                
-#                 street_address = form.cleaned_data.get('shipping_street_address')
-#                 appt_address = form.cleaned_data.get('shipping_appt_address')
-#                 country = form.cleaned_data.get('shipping_country')
-#                 zip = form.cleaned_data.get('shipping_zip')
-#                 phone = form.cleaned_data.get('shipping_phone')
-#                 email = form.cleaned_data.get('shipping_email')
-#                 delivery_instructions = form.cleaned_data.get('shipping_delivery_instructions')
-
-#                 shipping_address = ShippingAddress(user=self.request.user, street_address=street_address, appt_address=appt_address, country=country, zip=zip, phone=phone, email=email, delivery_instructions=delivery_instructions)
-#                 shipping_address.save()
-#                 order.shipping_address=shipping_address
-                
-#                 order.save()
-#                 payment_option = form.cleaned_data.get('payment_option')
-#                 if payment_option == 'S':
-#                     return redirect('core:payment-view',payment_option="stripe")
-#                 elif payment_option == 'P':
-#                     return redirect("core:payment-view",payment_option='paypal')
-#                 else:
-#                     messages.warning(self.request, message='Invalid payment option selected')
-#                     return redirect('core:checkout')
-                    
-#         except Exception as E:
-#             print(E)
-#             messages.warning(self.request, message="you do not have active order ")
-#             return redirect('core:order_summary')
-
+ 
 def is_valid_form(values):
     valid = True
     for field in values:
@@ -302,79 +221,6 @@ class CheckoutView(View):
             return redirect("core:order-summary")
 
 
-# class PaymentView(View):
-
-#     def get(self,*args,**kwargs):
-#         order=Order.objects.get(user=self.request.user,ordered=False)
-#         if order.billing_address:
-#             context={
-#                 'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLICIABLE_KEY,
-#                 'order':order,
-#                 'DISPLAY_COUPON_FORM': False
-                
-#             }
-#             return render(self.request, 'payment.html', context)
-#         else:
-#             messages.warning(self.request, message="you do not added an billing address ")
-#             return redirect('core:checkout')
-
-#     def post(self,*args,**kwargs):   
-#         try:
-#             # Use Stripe's library to make requests...
-#             order=Order.objects.get(user=self.request.user,ordered=False)
-#             token = self.request.POST.get('stripeToken')
-#             print('token aa rha hai------------->',token)
-#             amount = int(order.get_total() * 100)
-#             charge = stripe.Charge.create(
-#                         amount=amount,  # cents
-#                         currency="usd",
-#                         source=token
-#                     )
-
-#             payment = Payment(user=self.request.user, 
-#             stripe_charge_id=charge['id'],
-#             amount=order.get_total())
-#             payment.save()
-#             # TODO : 
-#             # WE HAVE TO MAKE ORDERED = TRUE FOR EVERY ITEM
-            
-#             order.ordered=True
-#             order.payment=payment
-#             order.reference_code=create_reference_code()            
-#             order.save()
-#             messages.success(self.request, message="Order is succesfull & you will get email soon")
-#             return redirect('/')
-#         except stripe.error.CardError as e:
-#             # # Since it's a decline, stripe.error.CardError will be caught
-#             # print('Message is: %s' % e.user_message)
-#             messages.error(self.request, message=f'{e.user_message}')
-#             return redirect('/')
-#         except stripe.error.RateLimitError as e:
-#             # Too many requests made to the API too quickly
-#             messages.error(self.request, message="Rate Limit Error")
-#             return redirect('/')
-#         except stripe.error.InvalidRequestError as e:
-#             # Invalid parameters were supplied to Stripe's API
-#             messages.error(self.request, message=f'{e} Invalid Parameters')
-#             return redirect('/')
-#         except stripe.error.AuthenticationError as e:
-#             # Authentication with Stripe's API failed
-#             # (maybe you changed API keys recently)
-#             messages.error(self.request, message="Authentication Failed")
-#             return redirect('/')
-#         except stripe.error.APIConnectionError as e:
-#             # Network communication with Stripe failed
-#             messages.error(self.request, message="Network error")
-#             return redirect('/')
-#         except stripe.error.StripeError as e:
-#             # Display a very generic error to the user, and maybe send
-#             # yourself an email
-#             messages.error(self.request, message="Something went wrong, Please try again")
-#             return redirect('/')
-#         except Exception as e:
-#             # Something else happened, completely unrelated to Stripe
-#             messages.error(self.request, f"serious issued occured, support team will back to you {e}")
-#             return redirect('/')
 class PaymentView(View):
     def get(self, *args, **kwargs):
         order = Order.objects.get(user=self.request.user, ordered=False)
@@ -473,6 +319,7 @@ class PaymentView(View):
                 order.save()
 
                 messages.success(self.request, "Your order was successful!")
+                send_mail_to_customer(self.request, order)
                 return redirect("/")
 
             except stripe.error.CardError as e:
@@ -642,3 +489,32 @@ class RequestRefundView(View):
             
             
    
+def cat_view(request, cat_name):
+    product=Item.objects.filter(cat__cat_name=cat_name)
+    context={
+        'product':product
+    }
+    return render(request,'cat_results.html',context)
+
+def search(request):
+    search_query = request.GET.get('search_query')
+    products_by_name = Item.objects.filter(item_name__icontains=search_query)
+    products_by_description = Item.objects.filter(description__icontains=search_query)
+    products_by_cat = Item.objects.filter(cat__cat_name__icontains=search_query)
+    products=products_by_name.union(products_by_description,products_by_cat)
+    context={
+        'product':products
+    }
+    return render(request,'cat_results.html',context)
+
+
+def test(request):
+    context = {
+        'reference_code':'ON1000234589',
+        'customer_name':request.user.username,
+        'customer_address':'ON1000234589',
+        'sub_total':'10000.00',
+        'delivery_charges':'40',
+        'grant_total':'10040.00'
+    }
+    return render(request,'order_confirmation.html',context)

@@ -76,7 +76,7 @@
     <div class="container">
 
       <!-- Brand -->
-      <a class="navbar-brand waves-effect" href="/" target="_blank">
+      <a class="navbar-brand waves-effect" href="/">
         <strong class="blue-text"> NEXT LIFE STYLE </strong>
       </a>
 
@@ -93,7 +93,10 @@
         <ul class="navbar-nav mr-auto">
           
           <li class="nav-item">
-            <a class="nav-link waves-effect" href="https://mdbootstrap.com/education/bootstrap/" target="_blank">Discount Products</a>
+            <a class="nav-link waves-effect" href="#discount_products"> <strong class="blue-text">Discount Products</strong></a>
+          </li>
+           <li class="nav-item">
+            <a class="nav-link waves-effect" href="{% url 'core:request-refund' %}" target="_blank"> <strong class="blue-text">Refunds</strong></a>
           </li>
         </ul>
 
@@ -125,7 +128,7 @@
  
 
           <li class="nav-item">
-            <a href="https://www.facebook.com/mdbootstrap" class="nav-link waves-effect" target="_blank">
+            <a href="https://www.facebook.com/pala.ram.7" class="nav-link waves-effect" target="_blank">
               <i class="fab fa-facebook-f"></i>
             </a>
           </li>
@@ -194,7 +197,7 @@
     new WOW().init();
 
   </script>
-  script src="https://js.stripe.com/v3/"></script>
+  <script src="https://js.stripe.com/v3/"></script>
 <script nonce="">  // Create a Stripe client.
   var stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
 
