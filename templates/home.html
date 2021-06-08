@@ -17,7 +17,7 @@
 
     <!--First slide-->
     {% for banner in banners %}
-      <div class="carousel-item active">
+      <div class="carousel-item  {% if forloop.first %} active {% endif %} ">
         <div class="view" style="background-image: url('media/{{ banner.b_image }}'); background-repeat: no-repeat; background-size: cover;">
 
           <!-- Mask & flexbox options-->
@@ -225,6 +225,7 @@
       </nav>
       {% endif %}
       <!--Pagination-->
+      {% comment %} <nav class="navbar navbar-expand-lg navbar-dark mdb-color lighten-3 mt-3 mb-5"> {% endcomment %}
       <h5 id="discount_products"> <strong class="blue-text"> Discount Products: </strong></h5>
        <!--Section: Products v.3-->
       <section class="text-center mb-4">
